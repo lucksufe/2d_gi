@@ -1,30 +1,18 @@
 from PIL import Image
+# from pylab import *
 import random
 import math
-
-
-def random_color(image_instance):
-    for i in range(0, image_instance.width):
-        for j in range(0, image_instance.height):
-            image_instance.putpixel([i, j], (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-
-
-# y = ax + b
-def dda_method(image_instance, a=1, b=0):
-    y = b
-    for x in range(0, image_instance.width):
-        image_instance.putpixel([x, image_instance.height-1-int(y)], (255, 255, 255))
-        y += a
-
+import sys
+import numpy as np
 
 def circle_sdf(point, center, radius):
     ux, uy = point[0] - center[0], point[1] - center[1]
-    return math.sqrt(ux*ux+uy*uy) - radius
+    return math.sqrt(ux * ux + uy * uy) - radius
 
 
 # direction is a normalized 2d vector
 # origin is a point
-def trace(origin, target, radius, direction, intensity, max_steps=5, max_distance=200, tolerance=1e-6):
+def trace(origin, target, radius, direction, intensity, max_steps=10, max_distance=1000, tolerance=1e-6):
     distance = 0
     for idx in range(0, max_steps):
         step_length = circle_sdf((origin[0]+direction[0]*distance, origin[1]+direction[1]*distance), target, radius)
@@ -36,10 +24,6 @@ def trace(origin, target, radius, direction, intensity, max_steps=5, max_distanc
     return 0
 
 
-# def generate_random_direction():
-#     temp = random.random()
-#     return tuple([temp, math.sqrt(1-temp*temp)])
-
 
 def get_directions(loop_num):
     result = []
@@ -50,18 +34,18 @@ def get_directions(loop_num):
 
 
 def render(image_instance):
-    target = (200, 200)
-    radius = 10
-    sample_num = 100
+    target = (256, 256)
+    radius = 51
+    sample_num = 64
     percentage = 0
     for i in range(0, image_instance.width):
         for j in range(0, image_instance.height):
             val = 0
             for direction in get_directions(sample_num):
-                val += trace((i, j), target, radius, direction, 50)
+                val += trace((i, j), target, radius, direction, 2)
             if val == 0:
                 continue
-            val /= float(sample_num * 4)
+            val /= sample_num
             val = min(int(val * 255), 255)
             image_instance.putpixel([i, image_instance.height-1-int(j)], (int(val), int(val), int(val)))
         if not percentage == i*100/image_instance.width:
@@ -69,8 +53,10 @@ def render(image_instance):
             print('rendering {0}%'.format(percentage))
 
 
-width, height = 400, 400
+width, height = 2, 4
 c = Image.new("RGB", (width, height))
-render(c)
-c.show()
-
+# render(c)
+# c.show()
+# sys.exit(0)
+print(np.asarray(c))
+print(np.zeros((4,2,3)))
